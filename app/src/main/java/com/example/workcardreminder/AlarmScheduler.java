@@ -13,13 +13,13 @@ public final class AlarmScheduler {
     private static final String TAG = "AlarmScheduler";
     private static final int REMINDER_REQUEST_CODE = 3001;
     private static final int REMINDER_SHOW_REQUEST_CODE = 3002;
+    static final String ACTION_REMINDER_ALARM = "com.example.workcardreminder.REMINDER_ALARM";
 
     private AlarmScheduler() {
     }
 
     public static void scheduleNextDailyReminder(Context context) {
         scheduleReminderAt(context, nextReminderTimeMillis(context));
-        ReminderNotifier.showStatus(context);
     }
 
     private static void scheduleReminderAt(Context context, long triggerAtMillis) {
@@ -28,7 +28,10 @@ public final class AlarmScheduler {
             return;
         }
 
-        PendingIntent pendingIntent = createPendingIntent(context);
+        cancelLegacyBroadcastAlarm(context, alarmManager);
+        cancelLegacyActivityAlarm(context, alarmManager);
+
+        PendingIntent pendingIntent = createAlarmActivityPendingIntent(context, REMINDER_REQUEST_CODE);
         PendingIntent showIntent = createShowPendingIntent(context);
         Log.i(TAG, "Scheduling next reminder at " + triggerAtMillis);
 
@@ -53,23 +56,47 @@ public final class AlarmScheduler {
         }
     }
 
-    private static PendingIntent createPendingIntent(Context context) {
-        Intent intent = new Intent(context, ReminderReceiver.class);
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            flags |= PendingIntent.FLAG_IMMUTABLE;
-        }
-        return PendingIntent.getBroadcast(context, REMINDER_REQUEST_CODE, intent, flags);
+    private static PendingIntent createShowPendingIntent(Context context) {
+        return createAlarmActivityPendingIntent(context, REMINDER_SHOW_REQUEST_CODE);
     }
 
-    private static PendingIntent createShowPendingIntent(Context context) {
+    private static PendingIntent createAlarmActivityPendingIntent(Context context, int requestCode) {
         Intent intent = new Intent(context, ReminderActivity.class);
+        intent.setAction(ACTION_REMINDER_ALARM);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             flags |= PendingIntent.FLAG_IMMUTABLE;
         }
-        return PendingIntent.getActivity(context, REMINDER_SHOW_REQUEST_CODE, intent, flags);
+        return PendingIntent.getActivity(context, requestCode, intent, flags);
+    }
+
+    private static void cancelLegacyBroadcastAlarm(Context context, AlarmManager alarmManager) {
+        Intent intent = new Intent(context, ReminderReceiver.class);
+        int flags = PendingIntent.FLAG_NO_CREATE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        PendingIntent legacyIntent = PendingIntent.getBroadcast(context, REMINDER_REQUEST_CODE, intent, flags);
+        if (legacyIntent != null) {
+            alarmManager.cancel(legacyIntent);
+            legacyIntent.cancel();
+        }
+    }
+
+    private static void cancelLegacyActivityAlarm(Context context, AlarmManager alarmManager) {
+        Intent intent = new Intent(context, ReminderActivity.class);
+        intent.setAction(ACTION_REMINDER_ALARM);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        int flags = PendingIntent.FLAG_NO_CREATE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        PendingIntent legacyIntent = PendingIntent.getActivity(context, REMINDER_SHOW_REQUEST_CODE, intent, flags);
+        if (legacyIntent != null) {
+            alarmManager.cancel(legacyIntent);
+            legacyIntent.cancel();
+        }
     }
 
     private static long nextReminderTimeMillis(Context context) {

@@ -12,7 +12,9 @@ public class ReminderActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ReminderNotifier.cancel(this);
+        if (AlarmScheduler.ACTION_REMINDER_ALARM.equals(getIntent().getAction())) {
+            ReminderNotifier.show(this);
+        }
         AlarmScheduler.scheduleNextDailyReminder(this);
         setContentView(createContentView());
     }
@@ -35,7 +37,10 @@ public class ReminderActivity extends Activity {
         Button doneButton = new Button(this);
         doneButton.setText(R.string.card_ready);
         doneButton.setAllCaps(false);
-        doneButton.setOnClickListener(view -> finish());
+        doneButton.setOnClickListener(view -> {
+            ReminderNotifier.cancel(this);
+            finish();
+        });
 
         LinearLayout.LayoutParams questionParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,

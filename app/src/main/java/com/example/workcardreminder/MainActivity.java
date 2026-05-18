@@ -28,9 +28,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ReminderNotifier.ensureChannel(this);
+        ReminderNotifier.cancelLegacyStatus(this);
         requestNotificationPermissionIfNeeded();
         AlarmScheduler.scheduleNextDailyReminder(this);
-        ReminderNotifier.showStatus(this);
         setContentView(createContentView());
         refreshStatus();
         if (getString(R.string.never_synced).equals(HolidayCalendar.getLastSync(this))) {

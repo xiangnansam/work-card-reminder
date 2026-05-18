@@ -14,9 +14,8 @@ import android.util.Log;
 public final class ReminderNotifier {
     private static final String TAG = "ReminderNotifier";
     private static final String CHANNEL_ID = "work_card_reminder";
-    private static final String STATUS_CHANNEL_ID = "work_card_status";
-    private static final int NOTIFICATION_ID = 4001;
-    private static final int STATUS_NOTIFICATION_ID = 4002;
+    static final int NOTIFICATION_ID = 4001;
+    private static final int LEGACY_STATUS_NOTIFICATION_ID = 4002;
 
     private ReminderNotifier() {
     }
@@ -38,48 +37,11 @@ public final class ReminderNotifier {
         if (manager != null) {
             manager.createNotificationChannel(channel);
 
-            NotificationChannel statusChannel = new NotificationChannel(
-                    STATUS_CHANNEL_ID,
-                    context.getString(R.string.status_channel_name),
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            statusChannel.setDescription(context.getString(R.string.status_channel_description));
-            statusChannel.setShowBadge(false);
-            manager.createNotificationChannel(statusChannel);
         }
     }
 
-    public static void showStatus(Context context) {
+    public static Notification createReminderNotification(Context context) {
         ensureChannel(context);
-
-        PendingIntent popupIntent = createPopupPendingIntent(context);
-        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? new Notification.Builder(context, STATUS_CHANNEL_ID)
-                : new Notification.Builder(context);
-
-        Notification notification = builder
-                .setSmallIcon(R.drawable.ic_work_card)
-                .setContentTitle(context.getString(R.string.status_title))
-                .setContentText(context.getString(
-                        R.string.status_text,
-                        ReminderSettings.getTimeText(context)
-                ))
-                .setContentIntent(popupIntent)
-                .setOngoing(true)
-                .setShowWhen(false)
-                .setPriority(Notification.PRIORITY_LOW)
-                .build();
-
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.notify(STATUS_NOTIFICATION_ID, notification);
-        }
-    }
-
-    public static void show(Context context) {
-        Log.i(TAG, "Showing reminder notification");
-        ensureChannel(context);
-        vibrate(context);
 
         PendingIntent popupIntent = createPopupPendingIntent(context);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -100,10 +62,17 @@ public final class ReminderNotifier {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setCategory(Notification.CATEGORY_ALARM)
                 .build();
+        return notification;
+    }
+
+    public static void show(Context context) {
+        Log.i(TAG, "Showing reminder notification");
+        ensureChannel(context);
+        vibrate(context);
 
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.notify(NOTIFICATION_ID, notification);
+            manager.notify(NOTIFICATION_ID, createReminderNotification(context));
         }
     }
 
@@ -111,6 +80,13 @@ public final class ReminderNotifier {
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
             manager.cancel(NOTIFICATION_ID);
+        }
+    }
+
+    public static void cancelLegacyStatus(Context context) {
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(LEGACY_STATUS_NOTIFICATION_ID);
         }
     }
 
