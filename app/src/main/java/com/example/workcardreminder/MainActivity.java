@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
         ReminderNotifier.ensureChannel(this);
         requestNotificationPermissionIfNeeded();
         AlarmScheduler.scheduleNextDailyReminder(this);
+        ReminderNotifier.showStatus(this);
         setContentView(createContentView());
         refreshStatus();
         if (getString(R.string.never_synced).equals(HolidayCalendar.getLastSync(this))) {

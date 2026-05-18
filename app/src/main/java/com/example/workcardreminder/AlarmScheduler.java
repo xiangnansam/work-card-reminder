@@ -19,6 +19,7 @@ public final class AlarmScheduler {
 
     public static void scheduleNextDailyReminder(Context context) {
         scheduleReminderAt(context, nextReminderTimeMillis(context));
+        ReminderNotifier.showStatus(context);
     }
 
     private static void scheduleReminderAt(Context context, long triggerAtMillis) {

@@ -23,4 +23,8 @@
     <string name="card_ready">带了</string>
     <string name="channel_name">工卡提醒</string>
     <string name="channel_description">每天提醒确认是否带工卡</string>
+    <string name="status_channel_name">提醒状态</string>
+    <string name="status_channel_description">显示工卡提醒是否已开启</string>
+    <string name="status_title">工卡提醒已开启</string>
+    <string name="status_text">将在法定工作日 %1$s 提醒</string>
 </resources>
