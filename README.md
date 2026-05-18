@@ -1,65 +1,56 @@
 # 工卡提醒
 
-一个轻量的 Android 工卡提醒 App。它会在你设定的时间提醒确认“今天带工卡了吗？”，并结合中国法定节假日和调休数据，只在法定工作日提醒。
+工卡提醒是一款轻量 Android App，用来在上班前提醒你确认是否带了工卡。它支持同步中国法定节假日和调休安排，只在法定工作日提醒，避免周末和节假日误提醒。
+
+## 下载 APK
+
+前往 Releases 页面下载最新版 APK：
+
+[下载工卡提醒 APK](https://github.com/xiangnansam/work-card-reminder/releases/latest)
+
+下载后在手机上打开 APK 文件，根据系统提示完成安装。部分手机可能需要允许浏览器、文件管理器或下载工具“安装未知来源应用”。
 
 ## 功能
 
 - 自主选择每日提醒时间
 - 同步中国节假日和调休数据
-- 仅在法定工作日提醒，跳过周末和节假日
+- 仅在法定工作日提醒，包含调休上班日
+- 跳过普通周末和法定节假日
 - 到点弹出确认窗口：`今天带工卡了吗？`
 - 点击 `带了` 后关闭提醒
-- 支持手机重启后重新安排提醒
-- 提供精确定时、后台提醒、应用权限入口，便于在 vivo/OPPO/小米等系统上放开提醒限制
+- 手机重启后自动恢复提醒
+- 提供精确定时、后台提醒、应用权限入口，方便在 vivo、OPPO、小米等系统上放开提醒限制
 
-## 技术栈
+## 使用建议
 
-- Java
-- Android SDK
-- Gradle
-- AlarmManager
-- BroadcastReceiver
-- NotificationManager
-- SharedPreferences
+首次打开 App 后，请允许通知权限，并点击 `同步中国节假日`。如果到点没有弹出提醒，请在 App 首页依次检查：
 
-## 项目结构
+- `允许精确定时`
+- `允许后台提醒`
+- `打开应用权限`
 
-```text
-app/src/main/java/com/example/workcardreminder/
-├── AlarmScheduler.java      # 安排下一次工作日提醒
-├── BootReceiver.java        # 手机重启后恢复提醒
-├── HolidayCalendar.java     # 本地节假日缓存和工作日判断
-├── HolidaySyncer.java       # 同步中国节假日数据
-├── MainActivity.java        # 首页设置界面
-├── ReminderActivity.java    # 弹窗提醒界面
-├── ReminderNotifier.java    # 通知和震动提醒
-└── ReminderReceiver.java    # 定时触发入口
-```
+不同手机厂商的系统可能会限制后台弹窗或定时提醒，建议允许该 App 后台运行、自启动、通知和全屏提醒权限。
 
-## 构建
+## 技术说明
 
-先确认本机已安装 Android SDK，并配置好 `ANDROID_HOME` 或 `local.properties`。
+这个项目使用原生 Android Java 开发，主要包含：
+
+- `AlarmManager`：安排工作日提醒
+- `BroadcastReceiver`：接收定时触发和开机恢复
+- `NotificationManager`：发送高优先级提醒通知
+- `SharedPreferences`：保存提醒时间和节假日缓存
+- 中国节假日接口：同步节假日和调休数据
+
+## 构建源码
+
+开发者可以 clone 项目后使用 Gradle Wrapper 构建：
 
 ```powershell
-gradle assembleDebug
+.\gradlew.bat assembleDebug
 ```
 
-Debug APK 输出位置：
+构建产物位于：
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
-
-## 真机安装
-
-手机开启 USB 调试后连接电脑：
-
-```powershell
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
-
-首次打开 App 后，请允许通知权限。部分国产 Android 系统还需要手动允许后台运行、自启动、后台弹出或全屏提醒权限。
-
-## 节假日数据
-
-节假日同步使用公开的中国节假日接口，并将结果缓存到本地。同步失败时 App 会保留本地缓存；若没有缓存，则按普通周一到周五作为兜底判断。
